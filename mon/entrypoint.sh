@@ -1,5 +1,8 @@
 #!/bin/bash
 set -e
+set -x
+
+echo "Starting ceph-mon $0"
 
 : ${MON_IP_AUTO_DETECT:=0}
 : ${MON_NAME:=$(hostname -s)}
@@ -10,14 +13,14 @@ set -e
 #   docker run -e MON_IP=192.168.101.50 -e MON_IP_AUTO_DETECT=1 ceph/mon
 
 if [ ${MON_IP_AUTO_DETECT} -eq 1 ]; then
-  MON_IP=$(ip -6 -o a | grep scope.global | awk '/eth/ { sub ("/..", "", $4); print $4 } | head -n1')
+  MON_IP=$(ip -6 -o a | grep scope.global | awk '/eth/ { sub ("/..", "", $4); print $4 }' | head -n1)
   if [ -z "$MON_IP" ]; then
     MON_IP=$(ip -4 -o a | awk '/eth/ { sub ("/..", "", $4); print $4 }')
   fi
 elif [ ${MON_IP_AUTO_DETECT} -eq 4 ]; then
   MON_IP=$(ip -4 -o a | awk '/eth/ { sub ("/..", "", $4); print $4 }')
 elif [ ${MON_IP_AUTO_DETECT} -eq 6 ]; then
-  MON_IP=$(ip -6 -o a | grep scope.global | awk '/eth/ { sub ("/..", "", $4); print $4 } | head -n1')
+  MON_IP=$(ip -6 -o a | grep scope.global | awk '/eth/ { sub ("/..", "", $4); print $4 }' | head -n1)
 fi
 
 if [ ! -n "$MON_IP" ]; then
@@ -78,6 +81,9 @@ if [ ! -e /var/lib/ceph/mon/ceph-${MON_NAME}/keyring ]; then
 
   # Make the monitor directory
   mkdir -p /var/lib/ceph/mon/ceph-${MON_NAME}
+
+  echo user is $(id)
+  ls -la /var/lib/ceph/mon/ceph-${MON_NAME}
 
   # Prepare the monitor daemon's directory with the map and keyring
   ceph-mon --mkfs -i ${MON_NAME} --monmap /etc/ceph/monmap --keyring /tmp/ceph.mon.keyring

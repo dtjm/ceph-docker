@@ -17,6 +17,9 @@ if [ ! -n "$CEPH_NETWORK" ]; then
    exit 1
 fi
 
+MON_IP=$(ifconfig | grep 172.17 | cut -d ':' -f 2 | cut -d' ' -f 1)
+echo MON_IP autodetected as ${MON_IP}
+
 if [ ! -n "$MON_IP" ]; then
    echo "ERROR- MON_IP must be defined as the IP address of the monitor"
    exit 1
